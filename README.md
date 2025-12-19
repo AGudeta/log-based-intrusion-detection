@@ -1,6 +1,6 @@
 # Log-Based Intrusion Detection Tool
 
-A Java-based blue team log monitoring tool that analyzes authentication logs to detect brute-force attacks, targeted accounts, and potential post-attack compromises.
+A Java-based log monitoring tool that analyzes authentication logs to detect brute-force attacks, targeted accounts, and potential post-attack compromises.
 
 ## Features
 - Parses authentication log files into structured events

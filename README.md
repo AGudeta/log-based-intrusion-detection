@@ -20,9 +20,9 @@ javac -d bin src/LogDetector.java
 java -cp bin LogDetector lib/auth.log output/report.txt
 
 ## Sample Log Format
-2025-12-18 21:01:10 FAILED_LOGIN user=admin ip=10.0.0.5
-2025-12-18 21:02:40 SUCCESS_LOGIN user=admin ip=10.0.0.5
+- 2025-12-18 21:01:10 FAILED_LOGIN user=admin ip=10.0.0.5
+- 2025-12-18 21:02:40 SUCCESS_LOGIN user=admin ip=10.0.0.5
 
 ## Output
-The program generates an incident-style report summarizing flagged IPs,
-targeted user accounts, peak attack windows, and possible compromise indicators.
+- The program generates an incident-style report summarizing flagged IPs,
+- targeted user accounts, peak attack windows, and possible compromise indicators.

@@ -14,11 +14,6 @@ A Java-based log monitoring tool that analyzes authentication logs to detect bru
 - Java Collections Framework (HashMap, HashSet, List)
 - Time-based analysis with LocalDateTime and Duration
 
-## How to Run
-```bash
-javac -d bin src/LogDetector.java
-java -cp bin LogDetector lib/auth.log output/report.txt
-
 ## Sample Log Format
 - 2025-12-18 21:01:10 FAILED_LOGIN user=admin ip=10.0.0.5
 - 2025-12-18 21:02:40 SUCCESS_LOGIN user=admin ip=10.0.0.5
@@ -26,3 +21,10 @@ java -cp bin LogDetector lib/auth.log output/report.txt
 ## Output
 - The program generates an incident-style report summarizing flagged IPs,
 - targeted user accounts, peak attack windows, and possible compromise indicators.
+  
+## How to Run
+```bash
+javac -d bin src/LogDetector.java
+java -cp bin LogDetector lib/auth.log output/report.txt
+
+

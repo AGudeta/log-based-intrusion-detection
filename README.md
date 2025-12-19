@@ -1,18 +1,30 @@
-## Getting Started
+# Log-Based Intrusion Detection Tool
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+A Java-based log monitoring tool that analyzes authentication logs to detect brute-force attacks, targeted accounts, and potential post-attack compromises.
 
-## Folder Structure
+## Features
+- Parses authentication log files into structured events
+- Detects brute-force attacks using rolling time-window analysis
+- Identifies targeted user accounts based on repeated failures
+- Flags successful logins following brute-force behavior
+- Generates an incident-style security report
 
-The workspace contains two folders by default, where:
+## Technologies
+- Java
+- Java Collections Framework (HashMap, HashSet, List)
+- Time-based analysis with LocalDateTime and Duration
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## Sample Log Format
+- 2025-12-18 21:01:10 FAILED_LOGIN user=admin ip=10.0.0.5
+- 2025-12-18 21:02:40 SUCCESS_LOGIN user=admin ip=10.0.0.5
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+## Output
+- The program generates an incident-style report summarizing flagged IPs,
+- targeted user accounts, peak attack windows, and possible compromise indicators.
+  
+## How to Run
+```bash
+javac -d bin src/LogDetector.java
+java -cp bin LogDetector lib/auth.log output/report.txt
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
 
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).

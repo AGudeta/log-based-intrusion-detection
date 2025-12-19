@@ -1,0 +1,10 @@
+# Compiled files
+bin/
+*.class
+
+# Output files
+output/
+
+# OS junk
+.DS_Store
+Thumbs.db

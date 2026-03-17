@@ -2,16 +2,26 @@ Report
 Input: lib/auth.log
 Malformed lines skipped: 0
 
- 1. Flagged IPs (Brute force):
+1. Flagged IPs (Brute force):
 
 IP: 10.0.0.5
 Max fails in 10 min window: 6
-Window: 2025-12-18T21:01:10 to 2025-12-18T21:02:14
+Window: 2025-12-18T21:00:01 to 2025-12-18T21:02:14
+
+IP: 185.220.101.12
+Max fails in 10 min window: 9
+Window: 2025-12-18T21:05 to 2025-12-18T21:06:55
+
+IP: 45.33.32.156
+Max fails in 10 min window: 9
+Window: 2025-12-18T21:10 to 2025-12-18T21:12
 
 2. Flagged Usernames (Targeted accounts)
 
-none
+User: admin | total failed logins: 18
 
-3. Possible Compormises (Success after brute force pattern)
+3. Possible Compromises (Success after brute force pattern)
 
-Possible Comporomise: time=2025-12-18T21:02:40 user=admin (success after brute-force pattern)
+Possible Compromise: time=2025-12-18T21:02:40 user=admin (success after brute-force pattern)
+Possible Compromise: time=2025-12-18T21:07 user=root (success after brute-force pattern)
+Possible Compromise: time=2025-12-18T21:12:05 user=admin (success after brute-force pattern)

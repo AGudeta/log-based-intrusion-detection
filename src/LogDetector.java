@@ -19,14 +19,14 @@ import java.util.Iterator;
 /**
  * Blue Team Log Detector (JAVA)
  * 
- * Reads a simplified authiniticaiton log file, detects suspicious activity, and writes the results to an incident style output file.
+ * Reads a simplified authentication log file, detects suspicious activity, and writes the results to an incident style output file.
  * 
- * Exptected input line format (one event per line): yyyy-MM-dd HH:mm:ss FAIL|SUCCESS user=... ip=...
+ * Expected input line format (one event per line): yyyy-MM-dd HH:mm:ss FAIL|SUCCESS user=... ip=...
  * 
  * Detection Rules:
  * 1. Brute force by IP: >= IP_FAIL_THRESHOLD FAILED_LOGIN within WINDOW_MINUTES.
  * 2. Targeted account: >= USER_FAIL_THRESHOLD total FAILED_LOGIN for a user.
- * 3. Possible Comporime: SUCCESS_LOGIN from an IP that has been flagged for brute force.
+ * 3. Possible Compromise: SUCCESS_LOGIN from an IP that has been flagged for brute force.
  */
 
 public final class LogDetector {
@@ -43,7 +43,7 @@ public final class LogDetector {
     }
 
     /**
-     * Represents one parsed log event(one line).
+     * Represents one parsed log event (one line).
      */
     private static final class Event {
         final LocalDateTime time;
@@ -68,7 +68,7 @@ public final class LogDetector {
     private static Event parseLine(String line) {
         //Split on whitespace
         String[] parts = line.trim().split("\\s+");
-        //Need at least: data, time, type, user=, ip=
+        //Need at least: date, time, type, user=, ip=
         if (parts.length < 5) {
             return null;
         }
@@ -99,13 +99,12 @@ public final class LogDetector {
     }
 
     /**
-     * Removes timestamps from 'times' that are older than WINDOW_MINUTES from relative to 'newest'.
-     * 
+     * Removes timestamps from 'times' that are older than WINDOW_MINUTES relative to 'newest'.
      */
     private static void pruneOldTimes(List<LocalDateTime> times, LocalDateTime newest) {
         Iterator<LocalDateTime> it = times.iterator();
-        while(it.hasNext()) {
-            LocalDateTime t =it.next();
+        while (it.hasNext()) {
+            LocalDateTime t = it.next();
 
             //Compute age in minutes: newest - t
             Duration duration = Duration.between(t, newest);
@@ -119,17 +118,16 @@ public final class LogDetector {
     /**
      * Main detection logic
      */
-
     public static void main(String[] args) {
         String inputPath = (args.length >= 1) ? args[0] : "lib/auth.log";
         String outputPath = (args.length >= 2) ? args[1] : "bin/report.txt";
 
         //Data structures for detection
-        
+
         //For each IP, store timestamps of FAILED_LOGIN within the rolling window
         Map<String, List<LocalDateTime>> failedTimesByIp = new HashMap<>();
 
-        //Tootal FAILED_LOGIN per user
+        //Total FAILED_LOGIN per user
         Map<String, Integer> failedCountByUser = new HashMap<>();
 
         //Flagged IPs and usernames
@@ -137,7 +135,7 @@ public final class LogDetector {
         Set<String> flaggedUsers = new HashSet<>();
 
         //If a flagged IP later has SUCCESS_LOGIN, add here
-        List<String> possibleCompormises = new ArrayList<>();
+        List<String> possibleCompromises = new ArrayList<>();
 
         //Report friendly details for IP window (largest window we observed)
         Map<String, Integer> maxWindowFailsByIp = new HashMap<>();
@@ -149,9 +147,9 @@ public final class LogDetector {
 
         //Read and process each line of the log file
         try (BufferedReader br = new BufferedReader(new FileReader(inputPath))) {
-            String line; 
+            String line;
             while ((line = br.readLine()) != null) {
-                //Conver one raw line into a structured Event obect;
+                //Convert one raw line into a structured Event object
                 Event e = parseLine(line);
                 if (e == null) {
                     malformedLines++;
@@ -169,9 +167,9 @@ public final class LogDetector {
                     List<LocalDateTime> times = failedTimesByIp.get(e.ip);
                     times.add(e.time);
 
-                    //remove timestamps outside the rolling WINDOW_MINUTES window
+                    //Remove timestamps outside the rolling WINDOW_MINUTES window
                     pruneOldTimes(times, e.time);
-                    
+
                     //Count failures in the current rolling window
                     int windowCount = times.size();
 
@@ -188,7 +186,7 @@ public final class LogDetector {
                         flaggedIps.add(e.ip);
                     }
 
-                    //Rule 2: Target account by username total
+                    //Rule 2: Targeted account by username total
                     int newTotal = failedCountByUser.getOrDefault(e.user, 0) + 1;
                     failedCountByUser.put(e.user, newTotal);
 
@@ -199,78 +197,75 @@ public final class LogDetector {
                     //Rule 3: Success after a brute force pattern
                     //If an IP was already flagged and then succeeds, this can be high risk
                     if (flaggedIps.contains(e.ip)) {
-                        possibleCompormises.add("Possible Compomise: time=" + e.time + " user=" + e.user + " (success after brute-force pattern)");
-                    } 
+                        possibleCompromises.add("Possible Compromise: time=" + e.time + " user=" + e.user + " (success after brute-force pattern)");
+                    }
                 } else {
-                    //unkown types ignored
+                    //Unknown types ignored
                 }
             }
-                
+
         } catch (IOException e) {
-                //If we can't read the input file, stop and print error
-                System.out.println("Error reading input file: " + inputPath);
-                System.out.println(e.getMessage());
-                return;
-            }
-            /*
-            Write Report
-             */
+            //If we can't read the input file, stop and print error
+            System.out.println("Error reading input file: " + inputPath);
+            System.out.println(e.getMessage());
+            return;
+        }
+
+        /*
+        Write Report
+        */
         try (PrintWriter out = new PrintWriter(new FileWriter(outputPath))) {
-                out.println("Report");
-                out.println("Input: " + inputPath);
-                out.println("Malformed lines skipped: " + malformedLines);
-                out.println();
+            out.println("Report");
+            out.println("Input: " + inputPath);
+            out.println("Malformed lines skipped: " + malformedLines);
+            out.println();
 
-                //Flagged IPs
-                out.println(" 1. Flagged IPs (Brute force):");
-                out.println();
-                if (flaggedIps.isEmpty()) {
-                    out.println("None");
-                } else {
-                    for (String ip : flaggedIps) {
-                        out.println("IP: "+ ip);
-                        out.println("Max fails in " + WINDOW_MINUTES + " min window: " + maxWindowFailsByIp.getOrDefault(ip, 0));
-                        LocalDateTime start = windowStartByIp.get(ip);
-                        LocalDateTime end = windowEndByIp.get(ip);
-                        if (start != null && end != null) {
-                            out.println("Window: " + start + " to " + end); 
-                        } 
-                            out.println();
-
-                    }
-                }
-                // Flagged usernames
-                out.println("2. Flagged Usernames (Targeted accounts)");
-                out.println();
-                if (flaggedUsers.isEmpty()) {
+            //Flagged IPs
+            out.println("1. Flagged IPs (Brute force):");
+            out.println();
+            if (flaggedIps.isEmpty()) {
                 out.println("None");
-                    } else {
-                        for (String user : flaggedUsers) {
-                            out.println("User: " + user + " | total failed logins: " + failedCountByUser.getOrDefault(user, 0));
-                            
-                        }
-
-                }
-                out.println();
-
-                //Possible compormise signals
-                out.println("3. Possible Compormises (Success after brute force pattern)");
-                out.println();
-                if (possibleCompormises.isEmpty()) {
-                    out.println("None");
-
-                } else {
-                    for (String s : possibleCompormises) {
-                        out.println(s);
+            } else {
+                for (String ip : flaggedIps) {
+                    out.println("IP: " + ip);
+                    out.println("Max fails in " + WINDOW_MINUTES + " min window: " + maxWindowFailsByIp.getOrDefault(ip, 0));
+                    LocalDateTime start = windowStartByIp.get(ip);
+                    LocalDateTime end = windowEndByIp.get(ip);
+                    if (start != null && end != null) {
+                        out.println("Window: " + start + " to " + end);
                     }
+                    out.println();
                 }
-
-            } catch (IOException e) {
-                System.out.println("Error writing output file: " + outputPath);
-                System.out.println(e.getMessage());
-                return;
             }
-            System.out.println("Done. Report written to: " + outputPath);
 
+            //Flagged usernames
+            out.println("2. Flagged Usernames (Targeted accounts)");
+            out.println();
+            if (flaggedUsers.isEmpty()) {
+                out.println("None");
+            } else {
+                for (String user : flaggedUsers) {
+                    out.println("User: " + user + " | total failed logins: " + failedCountByUser.getOrDefault(user, 0));
+                }
+            }
+            out.println();
+
+            //Possible compromise signals
+            out.println("3. Possible Compromises (Success after brute force pattern)");
+            out.println();
+            if (possibleCompromises.isEmpty()) {
+                out.println("None");
+            } else {
+                for (String s : possibleCompromises) {
+                    out.println(s);
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error writing output file: " + outputPath);
+            System.out.println(e.getMessage());
+            return;
+        }
+        System.out.println("Done. Report written to: " + outputPath);
     }
 }
